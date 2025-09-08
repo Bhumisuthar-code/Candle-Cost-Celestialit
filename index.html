@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Candle Cost + Price Calculator</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--muted:#94a3b8;--accent:#f59e0b}
+    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial; background:linear-gradient(180deg,#071428 0%, #071a2a 100%);color:#e6eef6;-webkit-font-smoothing:antialiased}
+
+    .wrap{max-width:900px;margin:28px auto;padding:28px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:14px;box-shadow:0 8px 30px rgba(2,6,23,0.6)}
+    h1{margin:0 0 6px;font-size:20px}
+    p.lead{margin:0 0 18px;color:var(--muted)}
+
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;align-items:start}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:8px}
+    input[type="number"]{width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:var(--card);color:inherit;font-size:15px;box-sizing:border-box}
+    .full{grid-column:1/-1}
+
+    .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    button{background:var(--accent);border:0;padding:12px 16px;border-radius:10px;font-weight:700;cursor:pointer;min-height:44px}
+    button.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);font-weight:600}
+
+    .muted{color:var(--muted);font-size:13px}
+    .output{margin-top:16px;padding:14px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.03)}
+    .line{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px dashed rgba(255,255,255,0.02)}
+    .line:last-child{border-bottom:0}
+    .big{font-size:18px;font-weight:700}
+    .small{font-size:14px;color:var(--muted)}
+    .note{margin-top:12px;color:var(--muted);font-size:13px}
+    footer{margin-top:18px;color:var(--muted);font-size:13px}
+
+    @media (max-width:700px){
+      .wrap{margin:12px;padding:18px}
+      .grid{grid-template-columns:1fr}
+      h1{font-size:18px}
+      input[type="number"]{padding:14px 16px;font-size:16px}
+      .controls{flex-direction:column;align-items:stretch}
+      button{width:100%;min-height:48px;font-size:16px}
+      .muted{font-size:12px}
+      .output{padding:12px}
+      .line{flex-direction:column;align-items:flex-start;padding:10px 0}
+      .line div:last-child{margin-top:6px}
+    }
+
+    @media (max-width:420px){
+      body{font-size:15px}
+      h1{font-size:17px}
+      .wrap{padding:14px}
+      input[type="number"]{padding:12px;font-size:15px}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1 style="text-align: center; text-decoration:underline">CELESTIALIT</h1>
+    <h1>Candle cost & pricing calculator</h1>
+    <p class="lead">Enter wax grams, scent %, packaging cost and profit % to get per‑candle cost, selling price and profit (INR).</p>
+
+    <div class="grid">
+      <div>
+        <label for="waxGrams">Wax (grams) per candle</label>
+        <input id="waxGrams" type="number" min="0" value="" inputmode="numeric" />
+      </div>
+
+      <div>
+        <label for="waxPrice">Wax price (INR per 1 kg)</label>
+        <input id="waxPrice" type="number" min="0" step="0.01" value="200" inputmode="numeric" />
+      </div>
+
+      <div>
+        <label for="scentPercent">Scent % of wax weight (e.g. 12)</label>
+        <input id="scentPercent" type="number" min="0" step="0.01" value="12" inputmode="numeric" />
+      </div>
+
+      <div>
+        <label for="scentPrice">Scent price (INR per 1 litre)</label>
+        <input id="scentPrice" type="number" min="0" step="0.01" value="3500" inputmode="numeric" />
+      </div>
+
+      <div>
+        <label for="packagingCost">Packaging cost (INR per candle)</label>
+        <input id="packagingCost" type="number" min="0" step="0.01" value="" inputmode="numeric" />
+      </div>
+
+      <div>
+        <label for="profitPercent">Desired profit % (markup on cost)</label>
+        <input id="profitPercent" type="number" min="0" step="0.01" value="" inputmode="numeric" />
+      </div>
+
+      <div class="full">
+        <div class="controls">
+          <button id="calcBtn">Calculate</button>
+          <button id="resetBtn" class="secondary">Reset defaults</button>
+          <div class="muted" style="margin-left:auto">All values in INR. Results shown per candle.</div>
+        </div>
+      </div>
+
+      <div class="full output" id="output" aria-live="polite">
+        <div class="line"><div class="small">Wax cost</div><div id="waxCost" class="small">—</div></div>
+        <div class="line"><div class="small">Scent cost</div><div id="scentCost" class="small">—</div></div>
+        <div class="line"><div class="small">Packaging cost</div><div id="pkgCost" class="small">—</div></div>
+        <div class="line"><div class="small">Total cost</div><div id="totalCost" class="big">—</div></div>
+        <div class="line"><div class="small">Selling price (requested %)</div><div id="sellingPrice" class="big">—</div></div>
+        <div class="line"><div class="small">Profit amount</div><div id="profitAmt" class="small">—</div></div>
+        <div class="line"><div class="small">Actual profit % (on cost)</div><div id="profitPct" class="small">—</div></div>
+      </div>
+
+      <div class="full note">
+        Note: Fragrance is calculated directly as 12% of wax weight → 120 ml per 1000 g wax. Cost = (ml/1000) × price per litre. No density required.
+      </div>
+
+    </div>
+
+    <footer>Made for Celestialit — adjust values and tap <strong>Calculate</strong>. Results update as you change inputs.</footer>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const toNum = (v) => (v === '' || v === null || isNaN(Number(v))) ? 0 : Number(v);
+    const fmtINR = (n) => '₹' + (isFinite(n) ? Number(n).toFixed(2) : '0.00');
+
+    function compute() {
+      const waxGrams = toNum($('waxGrams').value);
+      const waxPricePerKg = toNum($('waxPrice').value) || 0;
+      const scentPercent = toNum($('scentPercent').value) || 0;
+      const scentPricePerL = toNum($('scentPrice').value) || 0;
+      const packagingCost = toNum($('packagingCost').value) || 0;
+      const profitPercent = toNum($('profitPercent').value) || 0;
+
+      // calculations
+      const waxCost = (waxGrams / 1000) * waxPricePerKg;
+      const scentMl = (waxGrams / 1000) * (scentPercent * 10); // 12% = 120 ml per 1000 g
+      const scentCost = (scentMl / 1000) * scentPricePerL;
+
+      const totalCost = waxCost + scentCost + packagingCost;
+      const sellingPrice = totalCost * (1 + profitPercent / 100);
+      const profitAmount = sellingPrice - totalCost;
+      const profitPercentActual = totalCost > 0 ? (profitAmount / totalCost) * 100 : 0;
+
+      $('waxCost').textContent = fmtINR(waxCost);
+      $('scentCost').textContent = fmtINR(scentCost) + `  (${scentMl.toFixed(1)} ml)`;
+      $('pkgCost').textContent = fmtINR(packagingCost);
+      $('totalCost').textContent = fmtINR(totalCost);
+      $('sellingPrice').textContent = fmtINR(sellingPrice);
+      $('profitAmt').textContent = fmtINR(profitAmount);
+      $('profitPct').textContent = profitPercentActual.toFixed(2) + '%';
+    }
+
+    document.querySelectorAll('input').forEach(i => i.addEventListener('input', compute));
+    $('calcBtn').addEventListener('click', compute);
+    $('resetBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      $('waxGrams').value = "";        // reset to empty
+      $('waxPrice').value = 210;       // default
+      $('scentPercent').value = 12;    // default
+      $('scentPrice').value = 3500;    // default
+      $('packagingCost').value = "";   // reset to empty
+      $('profitPercent').value = "";   // reset to empty
+      compute();
+    });
+    
+
+    compute();
+  </script>
+</body>
+</html>
